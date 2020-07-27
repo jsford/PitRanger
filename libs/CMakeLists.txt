@@ -15,3 +15,6 @@ add_subdirectory(xsdevice)
 
 # Serial Port Library
 add_subdirectory(libserial)
+
+# Generate Python Bindings
+add_subdirectory(pybind11)
