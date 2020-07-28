@@ -1,5 +1,5 @@
-#include "imu.h"
-#include "log.h"
+#include "pr_imu.h"
+#include "pr_log.h"
 #include <fmt/format.h>
 
 #include <xsdevice/deviceclass.h>

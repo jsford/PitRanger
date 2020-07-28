@@ -17,4 +17,4 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 
 # Run the teleop binary on startup.
-terminator -e './pitranger && bash || bash'
+terminator -e './teleop && bash || bash'

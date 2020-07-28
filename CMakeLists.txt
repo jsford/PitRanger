@@ -5,6 +5,37 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(libs)
 
-add_executable(pitranger src/main.cpp src/imu.cpp src/motor_controller.cpp)
-target_link_libraries(pitranger xsdevice fmt::fmt eigen roboteq libserial_static stdc++fs)
-target_include_directories(pitranger PRIVATE src/${CMAKE_CURRENT_SOURCE_DIR})
+add_library(libpitranger
+    src/pr_imu.cpp
+    src/pr_motor.cpp
+    src/actuators/pr_ptu.cpp
+)
+target_link_libraries(libpitranger
+    xsdevice
+    fmt::fmt
+    eigen
+    roboteq
+    libserial_static
+    stdc++fs
+)
+target_include_directories(libpitranger
+    PUBLIC
+    include/
+    src/
+    src/actuators
+)
+
+
+add_executable(teleop
+    src/teleop.cpp
+)
+target_link_libraries(teleop
+    libpitranger
+)
+
+add_executable(mstop
+    src/mstop.cpp
+)
+target_link_libraries(mstop
+    libpitranger
+)

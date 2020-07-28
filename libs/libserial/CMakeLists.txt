@@ -17,7 +17,7 @@ PROJECT(LibSerial LANGUAGES C CXX VERSION 1.0.0)
 option(LIBSERIAL_ENABLE_TESTING "Enables building unit tests" OFF)
 option(LIBSERIAL_BUILD_EXAMPLES "Enables building example programs" OFF)
 option(LIBSERIAL_PYTHON_ENABLE "Enables building the library with Python SIP bindings" OFF)
-option(LIBSERIAL_BUILD_DOCS "Build the Doxygen docs" ON)
+option(LIBSERIAL_BUILD_DOCS "Build the Doxygen docs" OFF)
 
 #
 # Project specific options and variables
