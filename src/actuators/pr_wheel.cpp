@@ -80,15 +80,14 @@ WheelController::WheelController() {
       }
 
       if (found_left && !found_right) {
-        auto msg = fmt::format("Failed to find right Roboteq. Retrying... [{}/{}]", retry + 1,
+        auto msg = fmt::format("Failed to find right Roboteq. Retrying... [{}/{}]\n", retry + 1,
                                num_retries);
         pr::log_warn(msg);
       } else if (!found_right && found_right) {
-        auto msg =
-            fmt::format("Failed to find left Roboteq. Retrying... [{}/{}]", retry + 1, num_retries);
+        auto msg = fmt::format("Failed to find left Roboteq. Retrying... [{}/{}]\n", retry + 1, num_retries);
         pr::log_warn(msg);
       } else if (!found_right && !found_right) {
-        auto msg = fmt::format("Failed to find left and right Roboteqs. Retrying... [{}/{}]",
+        auto msg = fmt::format("Failed to find left and right Roboteqs. Retrying... [{}/{}]\n",
                                retry + 1, num_retries);
         pr::log_warn(msg);
       }

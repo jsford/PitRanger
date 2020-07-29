@@ -6,5 +6,8 @@ target_link_libraries(jog_ptu libpitranger)
 add_executable(jog_wheels jog_wheels.cpp)
 target_link_libraries(jog_wheels libpitranger)
 
+add_executable(pitcam_capture pitcam_capture.cpp)
+target_link_libraries(pitcam_capture libpitranger)
+
 add_executable(teleop teleop.cpp)
 target_link_libraries(teleop libpitranger)

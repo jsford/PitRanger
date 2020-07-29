@@ -1,3 +1,4 @@
+#include "pitranger/pitranger.h"
 #include "actuators/pr_ptu.h"
 #include "actuators/pr_wheel.h"
 #include "pr_imu.h"
