@@ -17,6 +17,7 @@ target_link_libraries(libpitranger
     roboteq
     libserial_static
     stdc++fs
+    cxxopts
 )
 target_include_directories(libpitranger
     PUBLIC
@@ -24,6 +25,8 @@ target_include_directories(libpitranger
     src/
     src/actuators
 )
+
+add_subdirectory(tools)
 
 
 add_executable(teleop

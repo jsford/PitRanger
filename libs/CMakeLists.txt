@@ -18,3 +18,6 @@ add_subdirectory(libserial)
 
 # Generate Python Bindings
 add_subdirectory(pybind11)
+
+# Command Line Argument Parsing
+add_subdirectory(cxxopts)

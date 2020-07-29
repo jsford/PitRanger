@@ -8,14 +8,16 @@ using namespace roboteq;
 
 namespace pr {
 
-PanTiltController::PanTiltController(const std::string& serial_port) {
+PanTiltController::PanTiltController() {
     // Connect to the Roboteq.
-    if( device.Connect(serial_port) != RQ_SUCCESS ) {
+    if( device.Connect(PTU_SERIAL_PORT) != RQ_SUCCESS ) {
         bool connected = false;
         int num_retries = 5;
         for(int retry = 1; retry <= num_retries; ++retry) {
-            auto msg = fmt::format("Failed to connect to pan/tilt roboteq on port {}. Retrying [{}/5].\n", serial_port, retry);
-            if( device.Connect(serial_port) == RQ_SUCCESS ) {
+            auto msg = fmt::format("Failed to connect to pan/tilt roboteq on port {}. Retrying [{}/5].", PTU_SERIAL_PORT, retry);
+            pr::log_warn(msg);
+
+            if( device.Connect(PTU_SERIAL_PORT) == RQ_SUCCESS ) {
                 connected = true;
                 break;
             }
@@ -23,7 +25,7 @@ PanTiltController::PanTiltController(const std::string& serial_port) {
         }
 
         if(!connected) {
-            auto msg = fmt::format("Failed to connect to pan/tilt roboteq on port {}.");
+            auto msg = fmt::format("Failed to connect to pan/tilt roboteq on port {}.", PTU_SERIAL_PORT);
             throw std::runtime_error(msg);
         }
     }
@@ -48,6 +50,18 @@ PanTiltController::PanTiltController(const std::string& serial_port) {
     set_kp(PTU_PAN_CHANNEL, PTU_PAN_PID[0]);
     set_ki(PTU_PAN_CHANNEL, PTU_PAN_PID[1]);
     set_kd(PTU_PAN_CHANNEL, PTU_PAN_PID[2]);
+
+    // Drive the motors to their current position to avoid breaking anything.
+    {
+        auto  pan_deg = get_pan_deg();
+        auto tilt_deg = get_tilt_deg();
+
+        pan_cmd = pan_deg*1000/PTU_PAN_MAX_DEG;
+        tilt_cmd = tilt_deg*1000/PTU_TILT_MAX_DEG;
+
+        set_pan_deg(pan_deg);
+        set_tilt_deg(tilt_deg);
+    }
 }
 
 PanTiltController::~PanTiltController() {
@@ -195,10 +209,27 @@ int PanTiltController::get_encoder_value(int chan) {
     return pos;
 }
 
-void PanTiltController::set_pan_deg(int deg) {}
-void PanTiltController::set_tilt_deg(int deg) {}
+void PanTiltController::set_pan_deg(int deg) {
+    // Normalize to [-1000, +1000]
+    pan_cmd = std::clamp<int>(deg*1000.0/PTU_PAN_MAX_DEG, -1000, 1000);
+    set_motor_cmd(PTU_PAN_CHANNEL, pan_cmd);
 
-int PanTiltController::get_pan_deg() {}
-int PanTiltController::get_tilt_deg() {}
+    // Note(Jordan): Add some kind of a wait statement here...
+}
+void PanTiltController::set_tilt_deg(int deg) {
+    // Normalize to [-1000, +1000]
+    tilt_cmd = std::clamp<int>(deg*1000.0/PTU_TILT_MAX_DEG, -1000, 1000);
+    set_motor_cmd(PTU_TILT_CHANNEL, tilt_cmd);
+
+    // Note(Jordan): Add some kind of a wait statement here...
+}
+
+int PanTiltController::get_pan_deg() {
+    return get_encoder_value(PTU_PAN_CHANNEL) * PTU_PAN_MAX_DEG/1000.0;
+}
+
+int PanTiltController::get_tilt_deg() {
+    return get_encoder_value(PTU_TILT_CHANNEL) * PTU_TILT_MAX_DEG/1000.0;
+}
 
 } // namespace pr

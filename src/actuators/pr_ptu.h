@@ -16,9 +16,9 @@ constexpr int    PTU_TILT_ENCODER_MIN       = 1400;
 constexpr int    PTU_TILT_ENCODER_CENTER    = 2300;
 constexpr int    PTU_TILT_ENCODER_MAX       = 3200;
 
-constexpr double PTU_TILT_MIN_DEG            =   0.0;
-constexpr double PTU_TILT_CENTER_DEG         =  90.0;
-constexpr double PTU_TILT_MAX_DEG            = 180.0;
+constexpr double PTU_TILT_MIN_DEG            = -90.0;
+constexpr double PTU_TILT_CENTER_DEG         =   0.0;
+constexpr double PTU_TILT_MAX_DEG            =  90.0;
 
 constexpr int    PTU_TILT_MOTOR_RPM         = 100;
 constexpr double PTU_TILT_PID[]             = {16.0, 0.0, 0.0};
@@ -46,14 +46,14 @@ constexpr int    PTU_PAN_CHANNEL            = 2;
 
 class PanTiltController {
     public:
-        PanTiltController(const std::string& serial_port);
+        PanTiltController();
         ~PanTiltController();
 
         void set_pan_deg(int deg);
         void set_tilt_deg(int deg);
 
-        int get_pan_deg();
-        int get_tilt_deg();
+        [[nodiscard]] int get_pan_deg();
+        [[nodiscard]] int get_tilt_deg();
 
     private:
         RoboteqDevice device;
