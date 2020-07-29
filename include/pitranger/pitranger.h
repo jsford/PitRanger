@@ -4,8 +4,8 @@
 #include "pr_motor.h"
 #include "pr_remote.h"
 #include "pr_time.h"
-//#include "pr_pitcam.h"
-//#include "pr_navcam.h"
+#include "pr_pitcam.h"
+#include "pr_navcam.h"
 
 namespace pr {
 

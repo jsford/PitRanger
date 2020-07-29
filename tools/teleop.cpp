@@ -1,8 +1,9 @@
+#include "actuators/pr_ptu.h"
+#include "actuators/pr_wheel.h"
 #include "pr_imu.h"
-#include "pr_time.h"
 #include "pr_log.h"
-#include "pr_motor.h"
 #include "pr_remote.h"
+#include "pr_time.h"
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
@@ -10,11 +11,12 @@ constexpr double ROBOT_WHEEL_DIAMETER = 0.2;
 constexpr double ROBOT_WHEELBASE_WIDTH = 0.8;
 constexpr double PI = 3.1415926536;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     pr::RemoteControl rc("/dev/teensy");
-    pr::MotorController motor_controller;
+    pr::WheelController motor_controller;
+    pr::PanTiltController ptu;
 
+    /*
     motor_controller.setLeftVelocity(0);
     motor_controller.setRightVelocity(0);
 
@@ -86,6 +88,7 @@ int main(int argc, char* argv[])
         motor_controller.setTiltDeg(cmd.tilt_deg);
         pr::time::msleep(50);
     }
+*/
 
-	return 0;
+    return 0;
 }

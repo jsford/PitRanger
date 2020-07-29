@@ -25,6 +25,8 @@ constexpr double PTU_TILT_PID[]             = {16.0, 0.0, 0.0};
 constexpr int    PTU_TILT_DEFAULT_CMD       = PTU_TILT_ENCODER_CENTER;
 constexpr int    PTU_TILT_CHANNEL           = 1;
 
+constexpr double PTU_TILT_EPSILON_DEG            = 2.0;
+
 
 // Pan Axis Configuration
 constexpr int PTU_PAN_ENCODER_ANALOG_INPUT      = 2;
@@ -43,6 +45,8 @@ constexpr int    PTU_PAN_MOTOR_RPM          = 100;
 constexpr double PTU_PAN_PID[]              = {16.0, 0.0, 0.0};
 constexpr int    PTU_PAN_DEFAULT_CMD        = PTU_PAN_ENCODER_MIN;
 constexpr int    PTU_PAN_CHANNEL            = 2;
+
+constexpr double PTU_PAN_EPSILON_DEG        = 2.0;
 
 class PanTiltController {
     public:
