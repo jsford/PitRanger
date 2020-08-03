@@ -10,7 +10,7 @@
 DIR="$( cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Go to the directory containing our binaries.
-cd $DIR/build
+cd $DIR/../build
 
 # Rebuild our binaries.
 cmake .. -DCMAKE_BUILD_TYPE=Release

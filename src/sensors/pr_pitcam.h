@@ -1,5 +1,6 @@
 #pragma once
 #include "Spinnaker.h"
+#include <vector>
 
 using namespace Spinnaker;
 
@@ -8,7 +9,10 @@ namespace pr {
 class PitCamera {
     public:
 
-        struct ImageRGB {};
+        struct ImageRGB {
+            int rows, cols;
+            std::vector<uint8_t> data;
+        };
 
         PitCamera();
         ~PitCamera();

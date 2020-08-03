@@ -24,6 +24,7 @@ target_link_libraries(libpitranger
     libserial_static
     stdc++fs
     cxxopts
+    stb
     ${Spinnaker_LIBRARIES}
 )
 target_include_directories(libpitranger

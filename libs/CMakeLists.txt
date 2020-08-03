@@ -21,3 +21,6 @@ add_subdirectory(pybind11)
 
 # Command Line Argument Parsing
 add_subdirectory(cxxopts)
+
+# STB Image Processing Library
+add_subdirectory(stb)
