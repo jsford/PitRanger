@@ -1,6 +1,7 @@
 #include "actuators/pr_ptu.h"
 #include <cxxopts.hpp>
 #include <fmt/format.h>
+#include "pr_time.h"
 
 //-----------------------------------------------------------//
 //  This is a command line tool to set the positions of the  //
@@ -9,12 +10,14 @@
 
 int main(int argc, char *argv[]) {
     pr::PanTiltController ptu;
+
     cxxopts::Options options("jog_ptu", "Exercise the Pan/Tilt Motors.");
 
-    options.allow_unrecognised_options().add_options()(
-        "p,pan", "Pan Degrees", cxxopts::value<int>())("t,tilt", "Tilt Degrees",
-                                                       cxxopts::value<int>())(
-        "l,list", "List Pan/Tilt Positions")("h,help", "Print help");
+    options.allow_unrecognised_options().add_options()
+        ("p,pan", "Pan Degrees", cxxopts::value<int>())
+        ("t,tilt", "Tilt Degrees", cxxopts::value<int>())
+        ("l,list", "List Pan/Tilt Positions")
+        ("h,help", "Print help");
 
     auto result = options.parse(argc, argv);
 

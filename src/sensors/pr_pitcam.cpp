@@ -28,13 +28,12 @@ PitCamera::PitCamera() {
     // Initialize the camera.
     pCam->Init();
 
-    // Get Device Link Throughput Limit Setting
-    CIntegerPtr ptrDeviceLinkThroughputLimit = pCam->GetNodeMap().GetNode("DeviceLinkThroughputLimit");
-    if (!IsAvailable(ptrDeviceLinkThroughputLimit) || !IsWritable(ptrDeviceLinkThroughputLimit)) {
-        throw std::runtime_error("Unable to set device link throughput limit (node retrieval). Aborting...");
-    }
-    // Limit Device Link Throughput to 50M
-    ptrDeviceLinkThroughputLimit->SetValue(DEVICE_LINK_THROUGHPUT_LIMIT_MBPS);
+    // Set device link throughput.
+    set_device_link_throughput(DEVICE_LINK_THROUGHPUT_LIMIT_MBPS);
+
+    // Calculate appropriate exposure and use it.
+    int exp_us = get_autoexposure();
+    set_exposure(exp_us);
 }
 
 PitCamera::~PitCamera() {
@@ -46,8 +45,83 @@ PitCamera::~PitCamera() {
     pSystem->ReleaseInstance();
 }
 
+void PitCamera::set_device_link_throughput(int MBps) {
+    CIntegerPtr ptrDeviceLinkThroughputLimit = pCam->GetNodeMap().GetNode("DeviceLinkThroughputLimit");
+    if (!IsAvailable(ptrDeviceLinkThroughputLimit) || !IsWritable(ptrDeviceLinkThroughputLimit)) {
+        throw std::runtime_error("Unable to set device link throughput limit (node retrieval). Aborting...");
+    }
+    ptrDeviceLinkThroughputLimit->SetValue(MBps);
+}
+
+int PitCamera::get_autoexposure() {
+    // Save current exposure so we can restore it later.
+    int original_exposure = get_exposure();
+
+    // Set the exposure to something reasonable to start with.
+    set_exposure(15000);
+
+    // Enable auto exposure and capture images to allow it to converge.
+    use_auto_exposure();
+    for(int i=0; i<5; ++i) {
+        capture(0);
+    }
+    // Save the calculated auto exposure.
+    int auto_exposure = get_exposure();
+
+    // Reset to original exposure.
+    use_manual_exposure();
+    set_exposure(original_exposure);
+
+    // Return the optimal exposure.
+    return auto_exposure;
+}
+
+int PitCamera::get_max_exposure() {
+    CFloatPtr ptrExposureTime = pCam->GetNodeMap().GetNode("ExposureTime");
+    if (!IsAvailable(ptrExposureTime) || !IsReadable(ptrExposureTime)) {
+        throw std::runtime_error("Unable to retrieve ExposureTime node.");
+    }
+    return ptrExposureTime->GetMax();
+}
+
+int PitCamera::get_min_exposure() {
+    CFloatPtr ptrExposureTime = pCam->GetNodeMap().GetNode("ExposureTime");
+    if (!IsAvailable(ptrExposureTime) || !IsReadable(ptrExposureTime)) {
+        throw std::runtime_error("Unable to retrieve ExposureTime node.");
+    }
+    return ptrExposureTime->GetMin();
+}
+
+int PitCamera::get_exposure() {
+    CFloatPtr ptrExposureTime = pCam->GetNodeMap().GetNode("ExposureTime");
+    if (!IsAvailable(ptrExposureTime) || !IsReadable(ptrExposureTime)) {
+        throw std::runtime_error("Unable to retrieve ExposureTime node.");
+    }
+    return ptrExposureTime->GetValue();
+}
+
+void PitCamera::set_exposure(int exposure_us) {
+    use_manual_exposure();
+
+    int exp_min = get_min_exposure();
+    int exp_max = get_max_exposure();
+    exposure_us = std::clamp(exposure_us, exp_min, exp_max);
+
+    fmt::print("Setting exposure to {} us.\n", exposure_us);
+
+    CFloatPtr ptrExposureTime = pCam->GetNodeMap().GetNode("ExposureTime");
+    if (!IsAvailable(ptrExposureTime) || !IsReadable(ptrExposureTime)) {
+        throw std::runtime_error("Unable to retrieve ExposureTime node.");
+    }
+    ptrExposureTime->SetValue(exposure_us);
+}
+
 PitCamera::ImageRGB
-PitCamera::capture(long int exposure_us) {
+PitCamera::capture(int exposure_us) {
+    if (exposure_us > 0) {
+        set_exposure(exposure_us);
+    }
+
     // Retrieve the GenICam nodemap.
     auto &nodeMap = pCam->GetNodeMap();
 
@@ -80,7 +154,6 @@ PitCamera::capture(long int exposure_us) {
 
         // Ensure image completion
         if (pResultImage->IsIncomplete()) {
-            pr::log_warn("PitCamera image is incomplete. Retrying... [{}/{}]\n", retry+1, num_retries);
             pResultImage->Release();
             pCam->EndAcquisition();
         } else {
@@ -115,6 +188,32 @@ PitCamera::capture(long int exposure_us) {
     // If we used all our retries, throw an exception.
     auto msg = fmt::format("PitCam failed to capture a complete image after {} attempts.", num_retries);
     throw std::runtime_error(msg);
+}
+
+void PitCamera::use_auto_exposure() {
+    CEnumerationPtr ptrExposureAuto = pCam->GetNodeMap().GetNode("ExposureAuto");
+    if (!IsAvailable(ptrExposureAuto) || !IsWritable(ptrExposureAuto)) {
+        throw std::runtime_error("Unable to retrieve ExposureAuto node.");
+    }
+
+    CEnumEntryPtr ptrExposureAutoContinuous = ptrExposureAuto->GetEntryByName("Continuous");
+    if (!IsAvailable(ptrExposureAutoContinuous) || !IsReadable(ptrExposureAutoContinuous)) {
+        throw std::runtime_error("Unable to retrieve ExposureAuto 'Continuous' entry node.");
+    }
+    ptrExposureAuto->SetIntValue(ptrExposureAutoContinuous->GetValue());
+}
+
+void PitCamera::use_manual_exposure() {
+    CEnumerationPtr ptrExposureAuto = pCam->GetNodeMap().GetNode("ExposureAuto");
+    if (!IsAvailable(ptrExposureAuto) || !IsWritable(ptrExposureAuto)) {
+        throw std::runtime_error("Unable to retrieve ExposureAuto node.");
+    }
+
+    CEnumEntryPtr ptrExposureAutoOff = ptrExposureAuto->GetEntryByName("Off");
+    if (!IsAvailable(ptrExposureAutoOff) || !IsReadable(ptrExposureAutoOff)) {
+        throw std::runtime_error("Unable to retrieve ExposureAuto 'Off' entry node.");
+    }
+    ptrExposureAuto->SetIntValue(ptrExposureAutoOff->GetValue());
 }
 
 } // namespace pr

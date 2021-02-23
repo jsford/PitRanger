@@ -14,7 +14,9 @@ int main(int argc, char *argv[]) {
 
     options.allow_unrecognised_options().add_options()
         ("e,exp", "Image exposure in usec.", cxxopts::value<int>())
-        ("f,filename", "Image filename (only jpg).", cxxopts::value<std::string>())
+        ("i,info", "List camera info.")
+        ("hdr", "Capture images across the entire exposure range.")
+        ("f,filename", "Image filename (bmp only).", cxxopts::value<std::string>())
         ("positional", "Positional arguments: these are the arguments that are entered without an option", cxxopts::value<std::vector<std::string>>())
         ("h,help", "Print help");
 
@@ -27,18 +29,39 @@ int main(int argc, char *argv[]) {
     }
 
     pr::PitCamera cam;
+    int exposure_us = 0;
 
-    if (result.count("exp")) {
-        int exp = result["exp"].as<int>();
-        fmt::print("Exposure not implemented yet.");
-        //cam.setExposure(exp);
+    if (result.count("info")) {
+        fmt::print("Exposure auto: {}\n", cam.get_exposure());
+        fmt::print("Exposure min:  {}\n", cam.get_min_exposure());
+        fmt::print("Exposure max:  {}\n", cam.get_max_exposure());
+        return 0;
     }
 
-    std::string fname = result["filename"].as<std::string>();
-    fmt::print("Capturing Image\n");
-    auto img = cam.capture(1000);
-    fmt::print("Saving image {}\n", fname);
-    stbi_write_jpg(fname.c_str(), img.cols, img.rows, 3, img.data.data(), 85);
+    if (result.count("exp")) {
+        std::string fname = result["filename"].as<std::string>();
+        exposure_us = result["exp"].as<int>();
+        fmt::print("Capturing Image\n");
+        auto img = cam.capture(exposure_us);
+        fmt::print("Saving image {}\n", fname);
+        stbi_write_bmp(fname.c_str(), img.cols, img.rows, 3, img.data.data());
+        return 0;
+    }
+
+    if (result.count("hdr")) {
+        int min = cam.get_min_exposure();
+        int max = cam.get_max_exposure();
+
+        int e = min;
+        while(e < max) {
+            fmt::print("Capturing Image With Exposure {}\n", e);
+            auto img = cam.capture(e);
+            std::string f = fmt::format("{:09}.bmp", e);
+            fmt::print("Saving image {}\n", f);
+            stbi_write_bmp(f.c_str(), img.cols, img.rows, 3, img.data.data());
+            e *= 2;
+        }
+    }
 
     return 0;
 }

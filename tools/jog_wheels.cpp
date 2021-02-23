@@ -9,7 +9,6 @@
 //-----------------------------------------------------------//
 
 int main(int argc, char *argv[]) {
-    pr::WheelController wheels;
     cxxopts::Options options("jog_wheels", "Exercise the Wheel Motors.");
 
     options.allow_unrecognised_options().add_options()(
@@ -22,6 +21,7 @@ int main(int argc, char *argv[]) {
 
     auto result = options.parse(argc, argv);
 
+    pr::WheelController wheels;
     double fr_rpm = wheels.get_front_right_rpm();
     double fl_rpm = wheels.get_front_left_rpm();
     double rr_rpm = wheels.get_rear_right_rpm();

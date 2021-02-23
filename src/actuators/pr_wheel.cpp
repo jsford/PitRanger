@@ -128,8 +128,8 @@ WheelController::WheelController() {
     use_velocity_mode(left);
     use_quadrature_encoder(left, WHEELS_ENCODER_PPR);
     set_max_vel(left, WHEELS_MAX_MOTOR_RPM);
-    set_kp(left, 16.0);
-    set_ki(left, 1.0);
+    set_kp(left, 0.4);
+    set_ki(left, 0.1);
     set_kd(left, 0.0);
   }
 
@@ -140,17 +140,33 @@ WheelController::WheelController() {
     use_velocity_mode(right);
     use_quadrature_encoder(right, WHEELS_ENCODER_PPR);
     set_max_vel(right, WHEELS_MAX_MOTOR_RPM);
-    set_kp(right, 16.0);
-    set_ki(right, 1.0);
+    set_kp(right, 0.4);
+    set_ki(right, 0.1);
     set_kd(right, 0.0);
   }
+}
+
+WheelController::~WheelController() {
+    set_left_rpm(0);
+    set_right_rpm(0);
+}
+
+double WheelController::set_left_rpm(double rpm) {
+    double fl_rpm = set_front_left_rpm(rpm);
+    double rl_rpm = set_rear_left_rpm(rpm);
+    return rl_rpm;
+}
+double WheelController::set_right_rpm(double rpm) {
+    double fr_rpm = set_front_right_rpm(rpm);
+    double rr_rpm = set_rear_right_rpm(rpm);
+    return rr_rpm;
 }
 
 double WheelController::set_front_right_rpm(double rpm) {
   fr_rpm = rpm;
 
-  int fr_cmd = std::clamp<int>(fr_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
-  int rr_cmd = std::clamp<int>(rr_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int fr_cmd = std::clamp<int>(fr_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int rr_cmd = std::clamp<int>(rr_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
 
   int status = right.SetCommand(_MOTCMD, -1 * fr_cmd, -1 * rr_cmd);
   if (status != RQ_SUCCESS) {
@@ -164,8 +180,8 @@ double WheelController::set_front_right_rpm(double rpm) {
 double WheelController::set_front_left_rpm(double rpm) {
   fl_rpm = rpm;
 
-  int fl_cmd = std::clamp<int>(fl_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
-  int rl_cmd = std::clamp<int>(rl_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int fl_cmd = std::clamp<int>(fl_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int rl_cmd = std::clamp<int>(rl_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
 
   int status = left.SetCommand(_MOTCMD, fl_cmd, rl_cmd);
   if (status != RQ_SUCCESS) {
@@ -179,8 +195,8 @@ double WheelController::set_front_left_rpm(double rpm) {
 double WheelController::set_rear_right_rpm(double rpm) {
   rr_rpm = rpm;
 
-  int fr_cmd = std::clamp<int>(fr_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
-  int rr_cmd = std::clamp<int>(rr_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int fr_cmd = std::clamp<int>(fr_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int rr_cmd = std::clamp<int>(rr_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
 
   int status = right.SetCommand(_MOTCMD, -1 * fr_cmd, -1 * rr_cmd);
   if (status != RQ_SUCCESS) {
@@ -194,8 +210,8 @@ double WheelController::set_rear_right_rpm(double rpm) {
 double WheelController::set_rear_left_rpm(double rpm) {
   rl_rpm = rpm;
 
-  int fl_cmd = std::clamp<int>(fl_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
-  int rl_cmd = std::clamp<int>(rl_rpm / WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int fl_cmd = std::clamp<int>(fl_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
+  int rl_cmd = std::clamp<int>(rl_rpm / (double)WHEELS_MAX_WHEEL_RPM * 1000, -1000, 1000);
 
   int status = left.SetCommand(_MOTCMD, fl_cmd, rl_cmd);
   if (status != RQ_SUCCESS) {
@@ -258,6 +274,46 @@ int WheelController::get_rear_left_encoder() {
     throw std::runtime_error(msg);
   }
   return pos;
+}
+
+double WheelController::get_front_right_amps() {
+  int tenth_amps;
+  int status = right.GetValue(_MOTAMPS, WHEELS_RIGHT_FRONT_CHANNEL, tenth_amps);
+  if (status != RQ_SUCCESS) {
+    auto msg = fmt::format("Failed to get front right wheel encoder value.");
+    throw std::runtime_error(msg);
+  }
+  return tenth_amps/10.0;
+}
+
+double WheelController::get_front_left_amps() {
+  int tenth_amps;
+  int status = left.GetValue(_MOTAMPS, WHEELS_LEFT_FRONT_CHANNEL, tenth_amps);
+  if (status != RQ_SUCCESS) {
+    auto msg = fmt::format("Failed to get front left wheel encoder value.");
+    throw std::runtime_error(msg);
+  }
+  return tenth_amps/10.0;
+}
+
+double WheelController::get_rear_right_amps() {
+  int tenth_amps;
+  int status = right.GetValue(_MOTAMPS, WHEELS_RIGHT_REAR_CHANNEL, tenth_amps);
+  if (status != RQ_SUCCESS) {
+    auto msg = fmt::format("Failed to get rear right wheel encoder value.");
+    throw std::runtime_error(msg);
+  }
+  return tenth_amps/10.0;
+}
+
+double WheelController::get_rear_left_amps() {
+  int tenth_amps;
+  int status = left.GetValue(_MOTAMPS, WHEELS_LEFT_REAR_CHANNEL, tenth_amps);
+  if (status != RQ_SUCCESS) {
+    auto msg = fmt::format("Failed to get rear left wheel encoder value.");
+    throw std::runtime_error(msg);
+  }
+  return tenth_amps/10.0;
 }
 
 void WheelController::disable_watchdog(RoboteqDevice &dev) {
@@ -339,12 +395,12 @@ void WheelController::set_max_vel(RoboteqDevice &dev, int motor_rpm) {
 
   // Set max motor acceleration.
   {
-    int status = dev.SetConfig(_MAC, 1, motor_rpm * 10);
+    int status = dev.SetConfig(_MAC, 1, 3*motor_rpm * 10);
     if (status != RQ_SUCCESS) {
       auto msg = fmt::format("Failed to set max motor acceleration.\n");
       throw std::runtime_error(msg);
     }
-    status = dev.SetConfig(_MAC, 2, motor_rpm * 10);
+    status = dev.SetConfig(_MAC, 2, 3*motor_rpm * 10);
     if (status != RQ_SUCCESS) {
       auto msg = fmt::format("Failed to set max motor acceleration.\n");
       throw std::runtime_error(msg);
@@ -353,19 +409,19 @@ void WheelController::set_max_vel(RoboteqDevice &dev, int motor_rpm) {
 
   // Set max motor deceleration.
   {
-    int status = dev.SetConfig(_MDEC, 1, motor_rpm * 10);
+    int status = dev.SetConfig(_MDEC, 1, 3*motor_rpm * 10);
     if (status != RQ_SUCCESS) {
       auto msg = fmt::format("Failed to set max motor deceleration.\n");
       throw std::runtime_error(msg);
     }
-    status = dev.SetConfig(_MDEC, 2, motor_rpm * 10);
+    status = dev.SetConfig(_MDEC, 2, 3*motor_rpm * 10);
     if (status != RQ_SUCCESS) {
       auto msg = fmt::format("Failed to set max motor deceleration.\n");
       throw std::runtime_error(msg);
     }
   }
 }
-void WheelController::set_kp(RoboteqDevice &dev, int kp) {
+void WheelController::set_kp(RoboteqDevice &dev, double kp) {
   int status = dev.SetConfig(_KP, 1, kp * 10);
   if (status != RQ_SUCCESS) {
     auto msg = fmt::format("Failed to set motor Kp.\n");
@@ -378,7 +434,7 @@ void WheelController::set_kp(RoboteqDevice &dev, int kp) {
     throw std::runtime_error(msg);
   }
 }
-void WheelController::set_ki(RoboteqDevice &dev, int ki) {
+void WheelController::set_ki(RoboteqDevice &dev, double ki) {
   int status = dev.SetConfig(_KI, 1, ki * 10);
   if (status != RQ_SUCCESS) {
     auto msg = fmt::format("Failed to set motor Ki.\n");
@@ -391,7 +447,7 @@ void WheelController::set_ki(RoboteqDevice &dev, int ki) {
     throw std::runtime_error(msg);
   }
 }
-void WheelController::set_kd(RoboteqDevice &dev, int kd) {
+void WheelController::set_kd(RoboteqDevice &dev, double kd) {
   int status = dev.SetConfig(_KD, 1, kd * 10);
   if (status != RQ_SUCCESS) {
     auto msg = fmt::format("Failed to set motor Kd.\n");

@@ -9,6 +9,50 @@ using namespace roboteq;
 
 namespace pr {
 
+namespace {
+
+int tilt_deg_to_cmd(int deg) {
+    double range;
+    if (deg > PTU_TILT_CENTER_DEG) {
+        range = PTU_TILT_MAX_DEG - PTU_TILT_CENTER_DEG;
+    } else {
+        range = PTU_TILT_CENTER_DEG - PTU_TILT_MIN_DEG;
+    }
+    return static_cast<int>(deg / range * 1000);
+}
+
+int tilt_cmd_to_deg(int cmd) {
+    double range;
+    if (cmd > 0) {
+        range = PTU_TILT_MAX_DEG-PTU_TILT_CENTER_DEG;
+    } else {
+        range = PTU_TILT_CENTER_DEG - PTU_TILT_MIN_DEG;
+    }
+    return static_cast<int>(cmd/1000.0 * range);
+}
+
+int pan_deg_to_cmd(int deg) {
+    double range;
+    if (deg > PTU_PAN_CENTER_DEG) {
+        range = PTU_PAN_MAX_DEG - PTU_PAN_CENTER_DEG;
+    } else {
+        range = PTU_PAN_CENTER_DEG - PTU_PAN_MIN_DEG;
+    }
+    return static_cast<int>(deg / range * 1000);
+}
+
+int pan_cmd_to_deg(int cmd) {
+    double range;
+    if (cmd > 0) {
+        range = PTU_PAN_MAX_DEG-PTU_PAN_CENTER_DEG;
+    } else {
+        range = PTU_PAN_CENTER_DEG - PTU_PAN_MIN_DEG;
+    }
+    return static_cast<int>(cmd / 1000.0 * range);
+}
+
+} // anonymous namespace
+
 PanTiltController::PanTiltController() {
   // Connect to the Roboteq.
   if (device.Connect(PTU_SERIAL_PORT) != RQ_SUCCESS) {
@@ -140,13 +184,13 @@ void PanTiltController::config_limit_switches(int chan, int fwd_in, int rev_in) 
     throw std::runtime_error(msg);
   }
 
-  status = device.SetConfig(_DINA, fwd_in, 4 + 2 * chan);
+  status = device.SetConfig(_DINA, fwd_in, 4 + 16 * chan);
   if (status != RQ_SUCCESS) {
     auto msg = fmt::format("Failed to set DIN{} use to 'Forward Limit Switch'.", fwd_in);
     throw std::runtime_error(msg);
   }
 
-  status = device.SetConfig(_DINA, rev_in, 4 + 2 * chan);
+  status = device.SetConfig(_DINA, rev_in, 5 + 16 * chan);
   if (status != RQ_SUCCESS) {
     auto msg = fmt::format("Failed to set DIN{} use to 'Reverse Limit Switch'.", rev_in);
     throw std::runtime_error(msg);
@@ -212,45 +256,61 @@ void PanTiltController::set_motor_cmd(int chan, int cmd) {
 
 int PanTiltController::get_encoder_value(int chan) {
   int pos;
-  int status = device.GetValue(_F, chan, pos);
-  if (status != RQ_SUCCESS) {
+  int retries = 5;
+
+  for (; retries > 0; --retries) {
+      int status = device.GetValue(_F, chan, pos);
+
+      if (status == RQ_SUCCESS) { break; }
+      pr::time::msleep(10);
+  }
+
+  if (retries <= 0) {
     auto msg = fmt::format("Failed to get the encoder value for Pan/Tilt channel {}.", chan);
     throw std::runtime_error(msg);
   }
+
   return pos;
 }
 
-void PanTiltController::set_pan_deg(int deg) {
+int PanTiltController::set_pan_deg(int deg) {
   deg = std::clamp<int>(deg, PTU_PAN_MIN_DEG, PTU_PAN_MAX_DEG);
 
-  // Normalize to [-1000, +1000]
-  pan_cmd = std::clamp<int>(deg * 1000.0 / PTU_PAN_MAX_DEG, -1000, 1000);
+  pan_cmd = pan_deg_to_cmd(deg);
+  //fmt::print("PAN CMD: {}\n", pan_cmd);
   set_motor_cmd(PTU_PAN_CHANNEL, pan_cmd);
 
   // Wait for the motor to move to the new position.
   while (std::abs(deg - get_pan_deg()) > PTU_PAN_EPSILON_DEG) {
+    //fmt::print("Pan: {}\n", get_pan_deg());
     pr::time::msleep(100);
   }
+  return deg;
 }
-void PanTiltController::set_tilt_deg(int deg) {
-  deg = std::clamp<int>(deg, PTU_TILT_MIN_DEG, PTU_TILT_MAX_DEG);
 
-  // Normalize to [-1000, +1000]
-  tilt_cmd = std::clamp<int>(deg * 1000.0 / PTU_TILT_MAX_DEG, -1000, 1000);
+int PanTiltController::set_tilt_deg(int deg) {
+  deg = std::clamp<int>(deg, PTU_TILT_MIN_DEG, PTU_TILT_MAX_DEG);
+  //fmt::print("Moving to {} deg.\n", deg);
+
+  tilt_cmd = tilt_deg_to_cmd(deg);
   set_motor_cmd(PTU_TILT_CHANNEL, tilt_cmd);
 
   // Wait for the motor to move to the new position.
   while (std::abs(deg - get_tilt_deg()) > PTU_TILT_EPSILON_DEG) {
+    //fmt::print("Tilt: {}\n", get_tilt_deg());
     pr::time::msleep(100);
   }
+  return deg;
 }
 
 int PanTiltController::get_pan_deg() {
-  return get_encoder_value(PTU_PAN_CHANNEL) * PTU_PAN_MAX_DEG / 1000.0;
+  const int cmd = get_encoder_value(PTU_PAN_CHANNEL);
+  return pan_cmd_to_deg(cmd);
 }
 
 int PanTiltController::get_tilt_deg() {
-  return get_encoder_value(PTU_TILT_CHANNEL) * PTU_TILT_MAX_DEG / 1000.0;
+  const int cmd = get_encoder_value(PTU_TILT_CHANNEL);
+  return tilt_cmd_to_deg(cmd);
 }
 
 } // namespace pr

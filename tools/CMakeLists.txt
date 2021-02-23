@@ -10,4 +10,10 @@ add_executable(pitcap pitcap.cpp)
 target_link_libraries(pitcap libpitranger)
 
 add_executable(teleop teleop.cpp)
-target_link_libraries(teleop libpitranger)
+target_link_libraries(teleop libpitranger steam_controller)
+
+set(CURSES_USE_NCURSES TRUE)
+find_package(Curses REQUIRED)
+add_executable(pitdriver pitdriver.cpp)
+target_link_libraries(pitdriver libpitranger ${CURSES_LIBRARY})
+target_include_directories(pitdriver PRIVATE ${CURSES_INCLUDE_DIR})

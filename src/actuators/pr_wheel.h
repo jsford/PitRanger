@@ -13,13 +13,17 @@ constexpr int WHEELS_LEFT_FRONT_CHANNEL = 1;
 constexpr int WHEELS_LEFT_REAR_CHANNEL = 2;
 
 constexpr int WHEELS_ENCODER_PPR = 7;
-constexpr int WHEELS_MAX_WHEEL_RPM = 12;
+constexpr int WHEELS_MAX_WHEEL_RPM = 24;
 constexpr int WHEELS_MOTOR_GEAR_RATIO = 188;
 constexpr int WHEELS_MAX_MOTOR_RPM = WHEELS_MAX_WHEEL_RPM*WHEELS_MOTOR_GEAR_RATIO;
 
 class WheelController {
     public:
         WheelController();
+        ~WheelController();
+
+        double set_left_rpm(double rpm);
+        double set_right_rpm(double rpm);
 
         double set_front_right_rpm(double rpm);
         double set_front_left_rpm(double rpm);
@@ -30,6 +34,11 @@ class WheelController {
         double get_front_left_rpm();
         double get_rear_right_rpm();
         double get_rear_left_rpm();
+
+        double get_front_right_amps();
+        double get_front_left_amps();
+        double get_rear_right_amps();
+        double get_rear_left_amps();
 
         int get_front_right_encoder();
         int get_front_left_encoder();
@@ -52,9 +61,9 @@ class WheelController {
         void use_velocity_mode(RoboteqDevice& dev);
         void use_quadrature_encoder(RoboteqDevice& dev, int encoder_ppr);
         void set_max_vel(RoboteqDevice& dev, int rpm);
-        void set_kp(RoboteqDevice& dev, int kp);
-        void set_ki(RoboteqDevice& dev, int kp);
-        void set_kd(RoboteqDevice& dev, int kp);
+        void set_kp(RoboteqDevice& dev, double kp);
+        void set_ki(RoboteqDevice& dev, double kp);
+        void set_kd(RoboteqDevice& dev, double kp);
 };
 
 } // namespace pr

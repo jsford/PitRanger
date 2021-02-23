@@ -1,0 +1,3 @@
+[submodule "libs/steam_controller"]
+	path = libs/steam_controller
+	url = https://github.com/ltjax/steam_controller.git

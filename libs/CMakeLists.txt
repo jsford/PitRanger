@@ -24,3 +24,6 @@ add_subdirectory(cxxopts)
 
 # STB Image Processing Library
 add_subdirectory(stb)
+
+# Steam Controller Library
+add_subdirectory(steam_controller)

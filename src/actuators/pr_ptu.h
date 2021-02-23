@@ -12,11 +12,11 @@ constexpr int PTU_TILT_ENCODER_ANALOG_INPUT      = 1;
 constexpr int PTU_TILT_FWD_LIMIT_DIGITAL_INPUT   = 5;
 constexpr int PTU_TILT_REV_LIMIT_DIGITAL_INPUT   = 6;
 
-constexpr int    PTU_TILT_ENCODER_MIN       = 1400;
+constexpr int    PTU_TILT_ENCODER_MIN       = 1560;
 constexpr int    PTU_TILT_ENCODER_CENTER    = 2300;
-constexpr int    PTU_TILT_ENCODER_MAX       = 3200;
+constexpr int    PTU_TILT_ENCODER_MAX       = 3250;
 
-constexpr double PTU_TILT_MIN_DEG            = -90.0;
+constexpr double PTU_TILT_MIN_DEG            = -76.0;
 constexpr double PTU_TILT_CENTER_DEG         =   0.0;
 constexpr double PTU_TILT_MAX_DEG            =  90.0;
 
@@ -25,24 +25,24 @@ constexpr double PTU_TILT_PID[]             = {16.0, 0.0, 0.0};
 constexpr int    PTU_TILT_DEFAULT_CMD       = PTU_TILT_ENCODER_CENTER;
 constexpr int    PTU_TILT_CHANNEL           = 1;
 
-constexpr double PTU_TILT_EPSILON_DEG            = 2.0;
+constexpr double PTU_TILT_EPSILON_DEG       = 2.0;
 
 
 // Pan Axis Configuration
 constexpr int PTU_PAN_ENCODER_ANALOG_INPUT      = 2;
-constexpr int PTU_PAN_FWD_LIMIT_DIGITAL_INPUT   = 2;
+constexpr int PTU_PAN_FWD_LIMIT_DIGITAL_INPUT   = 4;
 constexpr int PTU_PAN_REV_LIMIT_DIGITAL_INPUT   = 3;
 
-constexpr int    PTU_PAN_ENCODER_MIN        = 1400;
-constexpr int    PTU_PAN_ENCODER_CENTER     = 2300;
-constexpr int    PTU_PAN_ENCODER_MAX        = 3200;
+constexpr int    PTU_PAN_ENCODER_MIN        = 1600;
+constexpr int    PTU_PAN_ENCODER_CENTER     = 2270;
+constexpr int    PTU_PAN_ENCODER_MAX        = 3000;
 
-constexpr double PTU_PAN_MIN_DEG            = -90.0;
-constexpr double PTU_PAN_CENTER_DEG         =  0.0;
-constexpr double PTU_PAN_MAX_DEG            =  90.0;
+constexpr double PTU_PAN_MIN_DEG            = -67.0;
+constexpr double PTU_PAN_CENTER_DEG         =   0.0;
+constexpr double PTU_PAN_MAX_DEG            =  67.0;
 
-constexpr int    PTU_PAN_MOTOR_RPM          = 100;
-constexpr double PTU_PAN_PID[]              = {16.0, 0.0, 0.0};
+constexpr int    PTU_PAN_MOTOR_RPM          = 50;
+constexpr double PTU_PAN_PID[]              = {2.5, 0.1, 0.0};
 constexpr int    PTU_PAN_DEFAULT_CMD        = PTU_PAN_ENCODER_MIN;
 constexpr int    PTU_PAN_CHANNEL            = 2;
 
@@ -53,8 +53,8 @@ class PanTiltController {
         PanTiltController();
         ~PanTiltController();
 
-        void set_pan_deg(int deg);
-        void set_tilt_deg(int deg);
+        int set_pan_deg(int deg);
+        int set_tilt_deg(int deg);
 
         [[nodiscard]] int get_pan_deg();
         [[nodiscard]] int get_tilt_deg();
