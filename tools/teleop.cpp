@@ -82,6 +82,10 @@ int main(int argc, char *argv[]) {
     while(1) {
         ctrl->poll(event);
         auto state = ctrl->state();
+        for(int i=0; i<100; ++i) {
+            ctrl->poll(event);
+            state = ctrl->state();
+        }
 
         // Stop motors if controller connection is lost.
         if(state == sc::connection_state::disconnected) {

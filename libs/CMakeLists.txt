@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.15)
 
 # Eigen3 Linear Algebra
 add_library(eigen INTERFACE)
@@ -27,3 +27,13 @@ add_subdirectory(stb)
 
 # Steam Controller Library
 add_subdirectory(steam_controller)
+
+# Add Google RPC
+include(FetchContent)
+FetchContent_Declare(
+  gRPC
+  GIT_REPOSITORY https://github.com/grpc/grpc
+  GIT_TAG        RELEASE_TAG_HERE  # e.g v1.28.0
+)
+set(FETCHCONTENT_QUIET OFF)
+FetchContent_MakeAvailable(gRPC)
